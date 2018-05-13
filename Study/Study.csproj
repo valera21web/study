@@ -45,7 +45,11 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Empty.cs" />
+    <Compile Include="AES2.cs" />
     <Compile Include="AES.cs" />
+    <Compile Include="IEncrypt.cs" />
+    <Compile Include="LibConverter2.cs" />
     <Compile Include="LibConverter.cs" />
     <Compile Include="Form1.cs">
       <SubType>Form</SubType>
@@ -79,6 +83,12 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\ImageWithSecretLibrary\ImageWithSecretLibrary.csproj">
+      <Project>{d873a342-9663-4146-8af2-3e6de1fc511a}</Project>
+      <Name>ImageWithSecretLibrary</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

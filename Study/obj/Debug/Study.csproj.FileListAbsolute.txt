@@ -8,3 +8,16 @@ C:\Users\Lenovo\Documents\Visual Studio 2017\Projects\Study\Study\obj\Debug\Stud
 C:\Users\Lenovo\Documents\Visual Studio 2017\Projects\Study\Study\obj\Debug\Study.csproj.CoreCompileInputs.cache
 C:\Users\Lenovo\Documents\Visual Studio 2017\Projects\Study\Study\obj\Debug\Study.exe
 C:\Users\Lenovo\Documents\Visual Studio 2017\Projects\Study\Study\obj\Debug\Study.pdb
+D:\study\Study\bin\Debug\Study.exe.config
+D:\study\Study\bin\Debug\Study.exe
+D:\study\Study\bin\Debug\Study.pdb
+D:\study\Study\obj\Debug\Study.csprojResolveAssemblyReference.cache
+D:\study\Study\obj\Debug\Study.Form1.resources
+D:\study\Study\obj\Debug\Study.Properties.Resources.resources
+D:\study\Study\obj\Debug\Study.csproj.GenerateResource.Cache
+D:\study\Study\obj\Debug\Study.csproj.CoreCompileInputs.cache
+D:\study\Study\obj\Debug\Study.exe
+D:\study\Study\obj\Debug\Study.pdb
+D:\study\Study\bin\Debug\ImageWithSecretLibrary.dll
+D:\study\Study\bin\Debug\ImageWithSecretLibrary.pdb
+D:\study\Study\obj\Debug\Study.csproj.CopyComplete

@@ -17,6 +17,7 @@ namespace LibConvert
         private const byte _R = 0x4;
         private const byte _G = 0x2;
         private const byte _B = 0x1;
+        
 
         private readonly byte[] bits = { 0x1, 0x2, 0x4, 0x8, 0x10, 0x20, 0x40, 0x80 };
 
@@ -90,7 +91,7 @@ namespace LibConvert
             AESEncrypt = _AES;
             return this;
         }
-
+        
         #region Do encrypt
         public Bitmap Do()
         {
@@ -139,9 +140,6 @@ namespace LibConvert
                 imageModified.SetPixel(x, y, tmp);
                 ++x;
             }
-            var pixel1 = imageModified.GetPixel(0, 1);
-            var pixel2 = imageModified.GetPixel(1, 1);
-            var pixel3 = imageModified.GetPixel(2, 1);
             return imageModified;
         }
         #endregion
@@ -198,17 +196,17 @@ namespace LibConvert
                 pixel = imageOriginal.GetPixel(x, y);
                 pixelEnc = imageModified.GetPixel(x, y);
 
-                if (isR && i < countDataList.Length)
+                if (i < countDataList.Length)
                 {
                     countDataList[i] = (byte)(pixel.R ^ pixelEnc.R);
                     ++i;
                 }
-                if (isG && i < countDataList.Length)
+                if (i < countDataList.Length)
                 {
                     countDataList[i] = (byte)(pixel.G ^ pixelEnc.G);
                     ++i;
                 }
-                if (isB && i < countDataList.Length)
+                if (i < countDataList.Length)
                 {
                     countDataList[i] = (byte)(pixel.B ^ pixelEnc.B);
                     ++i;

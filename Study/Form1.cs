@@ -1,4 +1,6 @@
-﻿using LibConvert;
+﻿using ImageWithSecretLibrary;
+using ImageWithSecretLibrary.Modules;
+using LibConvert;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -53,15 +55,25 @@ namespace Study
             //textBoxKey2.Text = Convert.ToBase64String(AesKeys.Key);
             textBoxIV.Text = Convert.ToBase64String(AesKeys.IV);
             //textBoxIV2.Text = Convert.ToBase64String(AesKeys.IV);
-
+            /*
             var obj = new LibConverter(imageOriginal)
-                .SetR(R_Available)
-                .SetG(G_Available)
-                .SetB(B_Available);
+                .SetR(false)
+                .SetG(true)
+                .SetB(false);
             obj = obj.SetDataToEncrypt(textBox1.Text);
-            //obj = obj.AESEncryptData(AesKeys.Key, AesKeys.IV);
+            obj = obj.AESEncryptData(AesKeys.Key, AesKeys.IV);
             
-            imageEncrypted = new Bitmap(obj.Do());
+            imageEncrypted = obj.Do();
+
+            var pixel = imageEncrypted.GetPixel(6, 1);
+            var pixel1 = imageEncrypted.GetPixel(7, 1);
+            pictureBox2.Image = imageEncrypted;*/
+
+            var lib = new ImageWithSecret<string>();
+            lib.Image = imageOriginal;
+            lib.DataReader = new StringData();
+            lib.WriteReadData = new EmptyWriteReadPixelData();
+            imageEncrypted = lib.Encrypt(textBox1.Text);
             pictureBox2.Image = imageEncrypted;
         }
 
@@ -75,9 +87,23 @@ namespace Study
 
         private void button3_Click(object sender, EventArgs e)
         {
-            var obj = new LibConverter(imageOriginal).SetEncodedImage(imageEncrypted);
-            var a = obj.Decrypt(AesKeys.Key, AesKeys.IV);
+            var lib = new ImageWithSecret<string>();
+            lib.Image = imageEncrypted;
+            lib.DataReader = new StringData();
+            lib.WriteReadData = new EmptyWriteReadPixelData();
+            var a = lib.Decrypt(null);
+
+            //var obj = new LibConverter(imageOriginal).SetEncodedImage(imageEncrypted);
+            //var a = obj.Decrypt(AesKeys.Key, AesKeys.IV);
             textBoxEnc2.Text = a;
+        }
+
+        private void button4_Click(object sender, EventArgs e)
+        {
+            string plain = textBox1.Text;
+            var enc = AES.Encrypt(Encoding.UTF8.GetBytes(plain), AesKeys.Key, AesKeys.IV);
+            var dec = AES.Decrypt(enc, AesKeys.Key, AesKeys.IV);
+            var text = Encoding.UTF8.GetString(dec);
         }
     }
 }
