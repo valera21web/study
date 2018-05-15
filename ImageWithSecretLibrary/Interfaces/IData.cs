@@ -6,5 +6,6 @@ namespace ImageWithSecretLibrary.Interfaces
     {
         byte[] ToBytes(T data);
         T ToObject(byte[] plainText);
+        byte GetID();
     }
 }

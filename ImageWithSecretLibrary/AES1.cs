@@ -1,40 +1,41 @@
-﻿using ImageWithSecretLibrary.Interfaces;
-using System;
+﻿using System;
 using System.IO;
 using System.Security.Cryptography;
 
-namespace ImageWithSecretLibrary
+namespace Study
 {
-    public class AES : IEncrypt
+    public static class AES1
     {
-        private string Key;
-        private string IV;
-
-        public AES(string key, string iv)
+        // Make AES-key based on password given by user
+        public static byte[] CreateKey(string key)
         {
-            this.Key = key;
-            this.IV = iv;
+            byte[] bytesOfOwnKey = System.Text.Encoding.UTF8.GetBytes(key);
+
+            // Hash the password with SHA256
+            byte[] AESKey = SHA256Managed.Create().ComputeHash(bytesOfOwnKey);
+
+            return AESKey;
         }
 
-        public byte GetID()
+        public static byte[] Encrypt(byte[] plainText, string key, string iv)
         {
-            return 0b00000001;
+            return Encrypt(plainText, Base64Decode(key), Base64Decode(iv));
         }
 
-        public byte[] Encrypt(byte[] plainText)
+        public static byte[] Encrypt(byte[] plainData, byte[] Key, byte[] IV)
         {
-            var data = Base64Encode(plainText);
-            if (this.Key == null || this.Key.Length <= 0)
+            var data = Base64Encode(plainData);
+            if (Key == null || Key.Length <= 0)
                 throw new ArgumentNullException("Key");
-            if (this.IV == null || this.IV.Length <= 0)
+            if (IV == null || IV.Length <= 0)
                 throw new ArgumentNullException("IV");
             byte[] encrypted;
             // Create an Aes object
             // with the specified key and IV.
             using (Aes aesAlg = Aes.Create())
             {
-                aesAlg.Key = Base64Decode(this.Key);
-                aesAlg.IV = Base64Decode(this.IV);
+                aesAlg.Key = Key;
+                aesAlg.IV = IV;
 
                 // Create a decrytor to perform the stream transform.
                 ICryptoTransform encryptor = aesAlg.CreateEncryptor(aesAlg.Key, aesAlg.IV);
@@ -56,14 +57,19 @@ namespace ImageWithSecretLibrary
             return encrypted;
         }
 
-        public byte[] Decrypt(byte[] cipherText)
+        public static byte[] Decrypt(byte[] plainText, string key, string iv)
+        {
+            return Decrypt(plainText, Base64Decode(key), Base64Decode(iv));
+        }
+
+        public static byte[] Decrypt(byte[] cipherText, byte[] Key, byte[] IV)
         {
             // Check arguments.
             if (cipherText == null || cipherText.Length <= 0)
                 throw new ArgumentNullException("cipherText");
-            if (this.Key == null || this.Key.Length <= 0)
+            if (Key == null || Key.Length <= 0)
                 throw new ArgumentNullException("Key");
-            if (this.IV == null || this.IV.Length <= 0)
+            if (IV == null || IV.Length <= 0)
                 throw new ArgumentNullException("IV");
 
             // Declare the string used to hold
@@ -74,8 +80,8 @@ namespace ImageWithSecretLibrary
             // with the specified key and IV.
             using (Aes aesAlg = Aes.Create())
             {
-                aesAlg.Key = Base64Decode(this.Key);
-                aesAlg.IV = Base64Decode(this.IV);
+                aesAlg.Key = Key;
+                aesAlg.IV = IV;
 
                 // Create a decrytor to perform the stream transform.
                 ICryptoTransform decryptor = aesAlg.CreateDecryptor(aesAlg.Key, aesAlg.IV);

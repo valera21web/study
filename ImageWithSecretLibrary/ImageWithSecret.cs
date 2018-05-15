@@ -4,18 +4,24 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Drawing;
+using System.Linq;
 
 namespace ImageWithSecretLibrary
 {
     public class ImageWithSecret<T_Data>
     {
         public Bitmap Image { set; get; }
+        public Bitmap ImageOrigimal { set; get; }
         public IData<T_Data> DataReader { set; get; }
         public IWriteReadPixelData WriteReadData { set; get; }
         public List<IEncrypt> Encrypts = new List<IEncrypt>();
         public ICompression DataCompression { set; get; }
         private ByteOperations _byteOperations = new ByteOperations();
         private LockBitmap _lockBitmap;
+        private int WriteReadDataIdPosition = 8;
+        private int DataCompressionIdPosition = 9;
+        private int Encrypt1IdPosition = 10;
+        private int Encrypt2IdPosition = 11;
 
         public Bitmap Encrypt(T_Data data)
         {
@@ -30,23 +36,46 @@ namespace ImageWithSecretLibrary
 
             var dataToEncrypt = DataReader.ToBytes(data);
             WriteReadData.SetSettingsMode();
-            if(Encrypts != null && Encrypts.Count > 0)
+            // write config ID of module name for Write/Read data in pixel
+            //_lockBitmap.SetPixel(WriteReadDataIdPosition, 0, 
+            //    WriteReadData.WriteData(_lockBitmap.GetPixel(WriteReadDataIdPosition, 0), WriteReadData.GetID(), null, null, null));
+            setConfPixel(WriteReadDataIdPosition, WriteReadData.GetID());
+            if (DataCompression != null)
             {
+                dataToEncrypt = DataCompression.Compression(dataToEncrypt);
+                // write config ID of module Compression
+                //_lockBitmap.SetPixel(DataCompressionIdPosition, 0, WriteReadData.WriteData(_lockBitmap.GetPixel(DataCompressionIdPosition, 0), DataCompression.GetID(), null, null, null));
+                setConfPixel(DataCompressionIdPosition, DataCompression.GetID());
+            }
+            else
+            {
+                //_lockBitmap.SetPixel(DataCompressionIdPosition, 0, WriteReadData.WriteData(_lockBitmap.GetPixel(DataCompressionIdPosition, 0), 0b00000000, null, null, null));
+                setConfPixel(DataCompressionIdPosition, 0b00000000);
+            }
+
+            //_lockBitmap.SetPixel(Encrypt1IdPosition, 0, WriteReadData.WriteData(_lockBitmap.GetPixel(Encrypt1IdPosition, 0), 0b00000000, null, null, null));
+            //_lockBitmap.SetPixel(Encrypt2IdPosition, 0, WriteReadData.WriteData(_lockBitmap.GetPixel(Encrypt2IdPosition, 0), 0b00000000, null, null, null));
+            setConfPixel(Encrypt1IdPosition, 0b00000000);
+            setConfPixel(Encrypt2IdPosition, 0b00000000);
+            if (Encrypts != null && Encrypts.Count > 0)
+            {
+                var i = 0;
                 foreach(var enc in Encrypts)
                 {
                     dataToEncrypt = enc.Encrypt(dataToEncrypt);
+                    setConfPixel(Encrypt1IdPosition + i, enc.GetID());
+                    //_lockBitmap.SetPixel(Encrypt1IdPosition + i, 0, WriteReadData.WriteData(_lockBitmap.GetPixel(Encrypt1IdPosition + i, 0), enc.GetID(), null, null, null));
+
+                    if (++i > 1)
+                        break;
                 }
-            }
-            if(DataCompression != null)
-            {
-                dataToEncrypt = DataCompression.Compression(dataToEncrypt);
             }
 
             #region Write configs into image on Alpha path of color
 
             var dataLengthInBits = dataToEncrypt.Length * 8;
             var toWriteLength = _byteOperations.SplitSettingsBytes(new BitArray(BitConverter.GetBytes(dataLengthInBits)));
-            int col = 0, rowIndex = 1;
+            int col = 0, rowIndex = 0;
             foreach (var row in toWriteLength)
             {
                 _lockBitmap.SetPixel(col, rowIndex, WriteReadData.WriteData(_lockBitmap.GetPixel(col, rowIndex), row, null, null, null));
@@ -71,30 +100,40 @@ namespace ImageWithSecretLibrary
             }
             // Unlock the bits.
             _lockBitmap.UnlockBits();
-            var p1 = _lockBitmap.GetPixel(0, 1);
-            var p2 = _lockBitmap.GetPixel(1, 1);
-            var p3 = _lockBitmap.GetPixel(2, 1);
-            Image = _lockBitmap.GetImage();
-            var p11 = Image.GetPixel(0, 1);
-            var p21 = Image.GetPixel(1, 1);
-            var p31 = Image.GetPixel(2, 1);
-            return Image;
+            return _lockBitmap.GetImage();
+        }
+
+        private byte getConfPixel(int x)
+        {
+            return WriteReadData.ReadData(
+                Image.GetPixel(x, 0), ImageOrigimal == null ? new Color() : ImageOrigimal.GetPixel(x, 0))[0];
+        }
+        private void setConfPixel(int x, byte val)
+        {
+            _lockBitmap.SetPixel(x, 0, WriteReadData.WriteData(_lockBitmap.GetPixel(x, 0), val, null, null, null));
         }
 
         // original: maybe is null
         public T_Data Decrypt(Bitmap original)
         {
+            ImageOrigimal = original;
             WriteReadData.SetSettingsMode();
-            //var pixel = original.GetPixel(0, 0);
-            //var pixelEnc = Image.GetPixel(0, 0);
-            
+            var WriteReadDataId = getConfPixel(WriteReadDataIdPosition);
+            if (WriteReadDataId != WriteReadData.GetID())
+            {
+                throw new ArgumentException("Parameter is not correct", "WriteReadData");
+            }
+            var CompressionId = getConfPixel(DataCompressionIdPosition);
+            var EncryptId1 = getConfPixel(Encrypt1IdPosition);
+            var EncryptId2 = getConfPixel(Encrypt2IdPosition);
+
 
             byte[] countDataList = new byte[4];
             for (int i = 0; i < 4; ++i)
             {
                 var r = i * 2;
-                var bigPath = WriteReadData.ReadData(Image.GetPixel(r, 1), original == null ? new Color() : original.GetPixel(r, 1))[0];
-                var littlePath = WriteReadData.ReadData(Image.GetPixel(r + 1, 1), original == null ? new Color() : original.GetPixel(r + 1, 1))[0];
+                var bigPath = getConfPixel(r);
+                var littlePath = getConfPixel(r + 1);
 
                 bigPath = (byte) (bigPath << 4);
                 countDataList[3 - i] = (byte)(bigPath | littlePath); // index from end becouse big endian format
@@ -128,8 +167,26 @@ namespace ImageWithSecretLibrary
 
             var data = _byteOperations.JoinBytes(countDataList);
 
-            // Encrypt aes ....
-            // decompression
+            if (EncryptId2 > 0)
+            {
+                var enc = this.Encrypts.Where(r => r.GetID() == EncryptId2).FirstOrDefault();
+                if (enc != null)
+                {
+                    data = enc.Decrypt(data);
+                }
+            }
+            if (EncryptId1 > 0)
+            {
+                var enc = this.Encrypts.Where(r => r.GetID() == EncryptId1).FirstOrDefault();
+                if(enc != null)
+                {
+                    data = enc.Decrypt(data);
+                }
+            }
+            if (CompressionId > 0)
+            {
+
+            }
 
             return DataReader.ToObject(data);
         }

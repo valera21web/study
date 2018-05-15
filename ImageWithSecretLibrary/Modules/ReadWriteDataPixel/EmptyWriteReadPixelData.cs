@@ -51,5 +51,10 @@ namespace ImageWithSecretLibrary.Modules
         {
             isData = true;
         }
+
+        public byte GetID()
+        {
+            return 0b00000010;
+        }
     }
 }

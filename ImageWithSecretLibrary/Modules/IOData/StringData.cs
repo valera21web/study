@@ -29,5 +29,10 @@ namespace ImageWithSecretLibrary.Modules
         {
             return _encoding.GetString(plainText);
         }
+
+        public byte GetID()
+        {
+            return 0b00000001;
+        }
     }
 }

@@ -17,8 +17,8 @@ namespace Study
 {
     public partial class Form1 : Form
     {
-        private Bitmap imageOriginal;
-        private Bitmap imageEncrypted;
+        private Bitmap imageOriginal = null;
+        private Bitmap imageEncrypted = null;
         private Aes AesKeys = Aes.Create();
 
         private int countBitsToWrite = 4;
@@ -40,11 +40,11 @@ namespace Study
 
             if (openFileDialog1.ShowDialog() == DialogResult.OK)
             {
-                var upload = new Bitmap(openFileDialog1.FileName);
-                imageOriginal = new Bitmap(upload.Width, upload.Height, PixelFormat.Format32bppPArgb);
+                imageOriginal = new Bitmap(openFileDialog1.FileName);
+                /*imageOriginal = new Bitmap(upload.Width, upload.Height, PixelFormat.Format32bppPArgb);
                 using (Graphics gr = Graphics.FromImage(imageOriginal)) {
                     gr.DrawImage(upload, new Rectangle(0, 0, imageOriginal.Width, imageOriginal.Height));
-                }
+                }*/
                 pictureBox1.Image = imageOriginal;
             }
         }
@@ -72,7 +72,9 @@ namespace Study
             var lib = new ImageWithSecret<string>();
             lib.Image = imageOriginal;
             lib.DataReader = new StringData();
-            lib.WriteReadData = new EmptyWriteReadPixelData();
+            lib.WriteReadData = new XorWriteReadPixelData();
+            lib.Encrypts.Add(new ADD("test"));
+            lib.Encrypts.Add(new INV("test1"));
             imageEncrypted = lib.Encrypt(textBox1.Text);
             pictureBox2.Image = imageEncrypted;
         }
@@ -88,9 +90,11 @@ namespace Study
         private void button3_Click(object sender, EventArgs e)
         {
             var lib = new ImageWithSecret<string>();
-            lib.Image = imageEncrypted;
+            lib.Image = imageEncrypted != null ? imageEncrypted : imageOriginal;
             lib.DataReader = new StringData();
             lib.WriteReadData = new EmptyWriteReadPixelData();
+            lib.Encrypts.Add(new ADD("test"));
+            lib.Encrypts.Add(new INV("test2"));
             var a = lib.Decrypt(null);
 
             //var obj = new LibConverter(imageOriginal).SetEncodedImage(imageEncrypted);

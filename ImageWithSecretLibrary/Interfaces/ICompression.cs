@@ -6,5 +6,6 @@ namespace ImageWithSecretLibrary.Interfaces
     {
         byte[] Compression(byte[] plainText);
         byte[] Recovery(byte[] plainText);
+        byte GetID();
     }
 }

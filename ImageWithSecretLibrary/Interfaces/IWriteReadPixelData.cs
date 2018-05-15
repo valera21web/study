@@ -11,5 +11,7 @@ namespace ImageWithSecretLibrary.Interfaces
 
         void SetSettingsMode();
         void SetDataMode();
+        
+        byte GetID();
     }
 }
